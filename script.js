@@ -1,9 +1,8 @@
 let banksData = null;
 let banksList = null;
 let ifscData = null;
-let branchesData = {};
 
-// Fetch all required data when the page loads
+// Fetch all required data
 async function fetchData() {
     try {
         const [banksResponse, bankNamesResponse, ifscResponse] = await Promise.all([
@@ -15,10 +14,8 @@ async function fetchData() {
         banksData = await banksResponse.json();
         banksList = await bankNamesResponse.json();
         ifscData = await ifscResponse.json();
-
-        // Pre-process IFSC data
-        await processIFSCData();
         
+        // Initialize the search functionality
         initializeBankSearch();
     } catch (error) {
         console.error('Error loading data:', error);
@@ -26,51 +23,16 @@ async function fetchData() {
     }
 }
 
-// Process IFSC data to create a searchable structure
-async function processIFSCData() {
-    branchesData = {};
-    for (const [bankCode, branches] of Object.entries(ifscData)) {
-        if (!branchesData[bankCode]) {
-            branchesData[bankCode] = {
-                states: new Set(),
-                districts: {},
-                branches: {}
-            };
-        }
-
-        for (const ifscCode of branches) {
-            const bank = banksData[bankCode];
-            if (bank && bank.ifsc) {
-                const stateName = "MAHARASHTRA"; // Default state for testing
-                const districtName = "MUMBAI"; // Default district for testing
-                const branchName = `Branch ${ifscCode}`; // Default branch name
-
-                branchesData[bankCode].states.add(stateName);
-
-                if (!branchesData[bankCode].districts[stateName]) {
-                    branchesData[bankCode].districts[stateName] = new Set();
-                }
-                branchesData[bankCode].districts[stateName].add(districtName);
-
-                if (!branchesData[bankCode].branches[districtName]) {
-                    branchesData[bankCode].branches[districtName] = new Map();
-                }
-                branchesData[bankCode].branches[districtName].set(branchName, ifscCode);
-            }
-        }
-    }
-}
-
-// Initialize the bank search functionality
+// Initialize bank search functionality
 function initializeBankSearch() {
     const bankSearch = document.getElementById('bankSearch');
     const searchResults = document.getElementById('bankSearchResults');
     const bankSelect = document.getElementById('bankName');
-
-    // Enable the search input
+    
+    // Enable search input
     bankSearch.disabled = false;
 
-    // Add event listener for search input
+    // Add search input listener
     bankSearch.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
         if (searchTerm.length < 2) {
@@ -78,6 +40,7 @@ function initializeBankSearch() {
             return;
         }
 
+        // Filter matching banks
         const matches = Object.entries(banksList)
             .filter(([_, name]) => name.toLowerCase().includes(searchTerm))
             .slice(0, 10);
@@ -92,7 +55,7 @@ function initializeBankSearch() {
         }
     });
 
-    // Add event listener for search result selection
+    // Add click listener for search results
     searchResults.addEventListener('click', (e) => {
         const selectedBank = e.target.closest('div');
         if (selectedBank) {
@@ -102,7 +65,7 @@ function initializeBankSearch() {
             bankSearch.value = bankName;
             searchResults.style.display = 'none';
             
-            // Update the hidden select and trigger state loading
+            // Update bank select and load states
             bankSelect.innerHTML = `
                 <option value="">Select Bank</option>
                 <option value="${bankCode}" selected>${bankName}</option>
@@ -115,52 +78,48 @@ function initializeBankSearch() {
 // Load states for selected bank
 function loadStates(bankCode) {
     const stateSelect = document.getElementById('state');
-    
-    if (branchesData[bankCode] && branchesData[bankCode].states) {
-        const states = [...branchesData[bankCode].states].sort();
-        
+    if (ifscData[bankCode] && ifscData[bankCode].states) {
+        const states = ifscData[bankCode].states;
         stateSelect.innerHTML = `
             <option value="">Select State</option>
             ${states.map(state => `<option value="${state}">${state}</option>`).join('')}
         `;
         stateSelect.disabled = false;
     }
-
-    // Reset dependent dropdowns
     resetSelect('district', true);
     resetSelect('branch', true);
 }
 
-// Load districts for selected state
-function loadDistricts(state) {
+// Load cities for selected state
+function loadCities(state) {
     const bankCode = document.getElementById('bankName').value;
-    const districtSelect = document.getElementById('district');
-
-    if (branchesData[bankCode] && branchesData[bankCode].districts[state]) {
-        const districts = [...branchesData[bankCode].districts[state]].sort();
-
-        districtSelect.innerHTML = `
-            <option value="">Select District</option>
-            ${districts.map(district => `<option value="${district}">${district}</option>`).join('')}
+    const citySelect = document.getElementById('district');
+    
+    if (ifscData[bankCode] && ifscData[bankCode].cities[state]) {
+        const cities = ifscData[bankCode].cities[state];
+        citySelect.innerHTML = `
+            <option value="">Select City/District</option>
+            ${cities.map(city => `<option value="${city}">${city}</option>`).join('')}
         `;
-        districtSelect.disabled = false;
+        citySelect.disabled = false;
     }
-
-    // Reset branch dropdown
     resetSelect('branch', true);
 }
 
-// Load branches for selected district
-function loadBranches(district) {
+// Load branches for selected city
+function loadBranches(city) {
     const bankCode = document.getElementById('bankName').value;
+    const state = document.getElementById('state').value;
     const branchSelect = document.getElementById('branch');
-
-    if (branchesData[bankCode] && branchesData[bankCode].branches[district]) {
-        const branches = [...branchesData[bankCode].branches[district]].sort((a, b) => a[0].localeCompare(b[0]));
-
+    const cityKey = `${state}_${city}`;
+    
+    if (ifscData[bankCode] && ifscData[bankCode].branches[cityKey]) {
+        const branches = Object.entries(ifscData[bankCode].branches[cityKey])
+            .sort((a, b) => a[0].localeCompare(b[0]));
+        
         branchSelect.innerHTML = `
             <option value="">Select Branch</option>
-            ${branches.map(([branch, code]) => `<option value="${code}">${branch}</option>`).join('')}
+            ${branches.map(([branch, ifsc]) => `<option value="${ifsc}">${branch}</option>`).join('')}
         `;
         branchSelect.disabled = false;
     }
@@ -169,44 +128,96 @@ function loadBranches(district) {
 // Reset select element
 function resetSelect(id, disable = false) {
     const select = document.getElementById(id);
-    select.innerHTML = '<option value="">Select ' + id.charAt(0).toUpperCase() + id.slice(1) + '</option>';
+    const label = id === 'district' ? 'City/District' : id.charAt(0).toUpperCase() + id.slice(1);
+    select.innerHTML = `<option value="">Select ${label}</option>`;
     select.disabled = disable;
 }
 
-// Add event listeners
+// Copy text to clipboard
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show copied notification
+        const notification = document.createElement('div');
+        notification.className = 'copy-notification';
+        notification.textContent = 'IFSC copied!';
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.remove();
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+    });
+}
+
+// Add event listeners when page loads
 document.addEventListener('DOMContentLoaded', () => {
     fetchData();
 
-    // State selection change
+    // Add change listeners for dropdowns
     document.getElementById('state').addEventListener('change', (e) => {
         if (e.target.value) {
-            loadDistricts(e.target.value);
+            loadCities(e.target.value);
         }
     });
 
-    // District selection change
     document.getElementById('district').addEventListener('change', (e) => {
         if (e.target.value) {
             loadBranches(e.target.value);
         }
     });
 
-    // Find IFSC button click
+    // Add click listener for find IFSC button
     document.getElementById('findIfsc').addEventListener('click', () => {
         const branchSelect = document.getElementById('branch');
         const resultContainer = document.getElementById('result');
-        const bankCode = document.getElementById('bankName').value;
-        const state = document.getElementById('state').value;
-        const district = document.getElementById('district').value;
-
+        
         if (branchSelect.value) {
             const ifscCode = branchSelect.value;
+            const branchInfo = banksData[ifscCode];
             resultContainer.innerHTML = `
-                <h3>IFSC Code: ${ifscCode}</h3>
-                <p><strong>Bank:</strong> ${banksList[bankCode]}</p>
-                <p><strong>Branch:</strong> ${branchSelect.options[branchSelect.selectedIndex].text}</p>
-                <p><strong>District:</strong> ${district}</p>
-                <p><strong>State:</strong> ${state}</p>
+                <div class="ifsc-result">
+                    <div class="ifsc-header">
+                        <h3>IFSC Code: ${ifscCode}</h3>
+                        <button onclick="copyToClipboard('${ifscCode}')" class="copy-btn">
+                            <i class="fas fa-copy"></i> Copy Code
+                        </button>
+                    </div>
+                    <div class="bank-details">
+                        <div class="detail-row">
+                            <label>Bank:</label>
+                            <span>${branchInfo.bank}</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Branch:</label>
+                            <span>${branchInfo.branch}</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>Address:</label>
+                            <span>${branchInfo.address}</span>
+                        </div>
+                        <div class="detail-row">
+                            <label>City:</label>
+                            <span>${branchInfo.city}</span>
+                        </div>
+                        ${branchInfo.city2 ? `
+                            <div class="detail-row">
+                                <label>District:</label>
+                                <span>${branchInfo.city2}</span>
+                            </div>
+                        ` : ''}
+                        <div class="detail-row">
+                            <label>State:</label>
+                            <span>${branchInfo.state}</span>
+                        </div>
+                        ${(branchInfo.stdcode || branchInfo.phone) ? `
+                            <div class="detail-row">
+                                <label>Contact:</label>
+                                <span>${branchInfo.stdcode ? branchInfo.stdcode + '-' : ''}${branchInfo.phone || 'N/A'}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
             `;
             resultContainer.style.display = 'block';
         }
