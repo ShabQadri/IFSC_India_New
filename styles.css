@@ -1,9 +1,116 @@
-.ifsc-result {
-    background: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 800px;
+    margin: 40px auto;
     padding: 20px;
-    margin-top: 20px;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+    font-size: 2.5em;
+}
+
+/* Form Styles */
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+input[type="text"],
+select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #dde1e7;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    background-color: white;
+}
+
+input[type="text"]:focus,
+select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+}
+
+select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+}
+
+/* Search Results Dropdown */
+.search-results {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #dde1e7;
+    border-radius: 6px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+}
+
+.search-results div {
+    padding: 10px 15px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-results div:hover {
+    background-color: #f8f9fa;
+}
+
+/* Button Styles */
+#findIfsc {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#findIfsc:hover {
+    background-color: #2980b9;
+}
+
+/* Result Styles */
+.ifsc-result {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+    padding: 25px;
+    margin-top: 30px;
 }
 
 .ifsc-header {
@@ -11,17 +118,18 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #f0f0f0;
 }
 
 .ifsc-header h3 {
     margin: 0;
-    color: #333;
+    color: #2c3e50;
+    font-size: 1.4em;
 }
 
 .copy-btn {
-    background: #4CAF50;
+    background: #27ae60;
     color: white;
     border: none;
     padding: 8px 16px;
@@ -30,43 +138,52 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    transition: background 0.3s;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    font-weight: 600;
 }
 
 .copy-btn:hover {
-    background: #45a049;
+    background: #219a52;
+    transform: translateY(-1px);
 }
 
 .bank-details {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 15px;
 }
 
 .detail-row {
     display: flex;
-    gap: 10px;
+    gap: 15px;
+    padding: 8px 0;
 }
 
 .detail-row label {
-    font-weight: bold;
-    min-width: 100px;
-    color: #666;
+    font-weight: 600;
+    min-width: 120px;
+    color: #7f8c8d;
+    margin: 0;
 }
 
 .detail-row span {
-    color: #333;
+    color: #2c3e50;
+    flex: 1;
 }
 
+/* Copy Notification */
 .copy-notification {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background: #333;
+    background: #2ecc71;
     color: white;
-    padding: 10px 20px;
-    border-radius: 4px;
+    padding: 12px 24px;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     animation: fadeInOut 2s ease-in-out;
+    font-weight: 600;
 }
 
 @keyframes fadeInOut {
@@ -74,4 +191,49 @@
     20% { opacity: 1; transform: translateY(0); }
     80% { opacity: 1; transform: translateY(0); }
     100% { opacity: 0; transform: translateY(-20px); }
+}
+
+/* Footer Styles */
+footer {
+    text-align: center;
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #dde1e7;
+    color: #7f8c8d;
+}
+
+footer a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+        margin: 20px auto;
+    }
+
+    h1 {
+        font-size: 2em;
+    }
+
+    .ifsc-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .detail-row label {
+        min-width: unset;
+    }
 }
