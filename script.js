@@ -78,11 +78,29 @@ function loadStates(bankCode) {
     const stateSelect = document.getElementById('state');
     const states = new Set();
 
-    // Get all states for the selected bank
-    Object.entries(ifscData)
-        .filter(([code]) => code.startsWith(bankCode))
-        .forEach(([_, data]) => states.add(data.STATE));
+    // Get all IFSC codes for the selected bank
+    const bankIFSCs = ifscData[bankCode] || [];
+    
+    // Iterate through the IFSC codes to get states
+    bankIFSCs.forEach(ifscCode => {
+        // Make API call to get branch details
+        fetch(`https://ifsc.razorpay.com/${ifscCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.STATE) {
+                    states.add(data.STATE);
+                    updateStateDropdown(states, stateSelect);
+                }
+            })
+            .catch(error => console.error('Error fetching branch details:', error));
+    });
 
+    // Enable state dropdown
+    stateSelect.disabled = false;
+}
+
+// Update state dropdown with collected states
+function updateStateDropdown(states, stateSelect) {
     // Sort states alphabetically
     const sortedStates = [...states].sort();
 
@@ -91,11 +109,6 @@ function loadStates(bankCode) {
         <option value="">Select State</option>
         ${sortedStates.map(state => `<option value="${state}">${state}</option>`).join('')}
     `;
-    stateSelect.disabled = false;
-
-    // Reset and disable dependent dropdowns
-    resetSelect('district', true);
-    resetSelect('branch', true);
 }
 
 // Load districts for selected state
@@ -104,11 +117,28 @@ function loadDistricts(state) {
     const districtSelect = document.getElementById('district');
     const districts = new Set();
 
-    // Get all districts for the selected bank and state
-    Object.entries(ifscData)
-        .filter(([code, data]) => code.startsWith(bankCode) && data.STATE === state)
-        .forEach(([_, data]) => districts.add(data.DISTRICT));
+    // Get all IFSC codes for the selected bank
+    const bankIFSCs = ifscData[bankCode] || [];
+    
+    // Iterate through the IFSC codes to get districts
+    bankIFSCs.forEach(ifscCode => {
+        fetch(`https://ifsc.razorpay.com/${ifscCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.STATE === state && data.DISTRICT) {
+                    districts.add(data.DISTRICT);
+                    updateDistrictDropdown(districts, districtSelect);
+                }
+            })
+            .catch(error => console.error('Error fetching branch details:', error));
+    });
 
+    // Enable district dropdown
+    districtSelect.disabled = false;
+}
+
+// Update district dropdown with collected districts
+function updateDistrictDropdown(districts, districtSelect) {
     // Sort districts alphabetically
     const sortedDistricts = [...districts].sort();
 
@@ -117,10 +147,6 @@ function loadDistricts(state) {
         <option value="">Select District</option>
         ${sortedDistricts.map(district => `<option value="${district}">${district}</option>`).join('')}
     `;
-    districtSelect.disabled = false;
-
-    // Reset and disable branch dropdown
-    resetSelect('branch', true);
 }
 
 // Load branches for selected district
@@ -130,15 +156,28 @@ function loadBranches(district) {
     const branchSelect = document.getElementById('branch');
     const branches = new Map();
 
-    // Get all branches for the selected bank, state, and district
-    Object.entries(ifscData)
-        .filter(([code, data]) => 
-            code.startsWith(bankCode) && 
-            data.STATE === state && 
-            data.DISTRICT === district
-        )
-        .forEach(([code, data]) => branches.set(data.BRANCH, code));
+    // Get all IFSC codes for the selected bank
+    const bankIFSCs = ifscData[bankCode] || [];
+    
+    // Iterate through the IFSC codes to get branches
+    bankIFSCs.forEach(ifscCode => {
+        fetch(`https://ifsc.razorpay.com/${ifscCode}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data && data.STATE === state && data.DISTRICT === district && data.BRANCH) {
+                    branches.set(data.BRANCH, ifscCode);
+                    updateBranchDropdown(branches, branchSelect);
+                }
+            })
+            .catch(error => console.error('Error fetching branch details:', error));
+    });
 
+    // Enable branch dropdown
+    branchSelect.disabled = false;
+}
+
+// Update branch dropdown with collected branches
+function updateBranchDropdown(branches, branchSelect) {
     // Sort branches alphabetically
     const sortedBranches = [...branches.entries()].sort((a, b) => a[0].localeCompare(b[0]));
 
@@ -147,7 +186,6 @@ function loadBranches(district) {
         <option value="">Select Branch</option>
         ${sortedBranches.map(([branch, code]) => `<option value="${code}">${branch}</option>`).join('')}
     `;
-    branchSelect.disabled = false;
 }
 
 // Reset select element
@@ -181,18 +219,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const resultContainer = document.getElementById('result');
 
         if (branchSelect.value) {
-            const ifscCode = branchSelect.value;
-            const branchData = ifscData[ifscCode];
-            
-            resultContainer.innerHTML = `
-                <h3>IFSC Code: ${ifscCode}</h3>
-                <p><strong>Bank:</strong> ${banksList[ifscCode.slice(0, 4)]}</p>
-                <p><strong>Branch:</strong> ${branchData.BRANCH}</p>
-                <p><strong>Address:</strong> ${branchData.ADDRESS}</p>
-                <p><strong>District:</strong> ${branchData.DISTRICT}</p>
-                <p><strong>State:</strong> ${branchData.STATE}</p>
-            `;
-            resultContainer.style.display = 'block';
+            fetch(`https://ifsc.razorpay.com/${branchSelect.value}`)
+                .then(response => response.json())
+                .then(data => {
+                    resultContainer.innerHTML = `
+                        <h3>IFSC Code: ${data.IFSC}</h3>
+                        <p><strong>Bank:</strong> ${banksList[data.BANK]}</p>
+                        <p><strong>Branch:</strong> ${data.BRANCH}</p>
+                        <p><strong>Address:</strong> ${data.ADDRESS}</p>
+                        <p><strong>District:</strong> ${data.DISTRICT}</p>
+                        <p><strong>State:</strong> ${data.STATE}</p>
+                    `;
+                    resultContainer.style.display = 'block';
+                })
+                .catch(error => {
+                    console.error('Error fetching IFSC details:', error);
+                    alert('Error fetching branch details. Please try again.');
+                });
         }
     });
 });
