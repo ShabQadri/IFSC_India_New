@@ -3,59 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IFSC Code Lookup</title>
+    <title>IFSC Code Finder</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <div class="logo">
-                <img src="bank-icon.svg" alt="Bank Icon">
-                <h1>IFSC Code Lookup</h1>
-            </div>
-            <p class="subtitle">Find Indian Financial System Codes for banks across India. Search by bank, state, district, or branch.</p>
-        </div>
-
-        <div class="search-form">
+        <h1>IFSC Code Finder</h1>
+        
+        <form id="ifscForm">
             <div class="form-group">
-                <label for="bankSearch">Bank Name</label>
-                <div class="search-container">
-                    <input type="text" id="bankSearch" placeholder="Search for bank...">
-                    <div id="bankSearchResults" class="search-results"></div>
-                </div>
-                <select id="bankName" disabled>
-                    <option value="">Select Bank</option>
-                </select>
+                <label for="bankSearch">Search Bank:</label>
+                <input type="text" id="bankSearch" placeholder="Start typing bank name..." disabled>
+                <div id="bankSearchResults" class="search-results"></div>
+                <select id="bankName" style="display: none;"></select>
             </div>
-
+            
             <div class="form-group">
-                <label for="state">State</label>
+                <label for="state">State:</label>
                 <select id="state" disabled>
                     <option value="">Select State</option>
                 </select>
             </div>
-
+            
             <div class="form-group">
-                <label for="district">District</label>
+                <label for="district">City/District:</label>
                 <select id="district" disabled>
-                    <option value="">Select District</option>
+                    <option value="">Select City/District</option>
                 </select>
             </div>
-
+            
             <div class="form-group">
-                <label for="branch">Branch</label>
+                <label for="branch">Branch:</label>
                 <select id="branch" disabled>
                     <option value="">Select Branch</option>
                 </select>
             </div>
+            
+            <button type="button" id="findIfsc">Find IFSC Code</button>
+        </form>
 
-            <button id="findIfsc" class="find-button">
-                🔍 Find IFSC Code
-            </button>
+        <div id="result" style="display: none;"></div>
 
-            <div id="result" class="result-container"></div>
-        </div>
+        <footer>
+            <p>Last Updated: 2025-06-11 | Created by <a href="https://github.com/ShabQadri" target="_blank">ShabQadri</a></p>
+        </footer>
     </div>
+
+    <!-- JavaScript -->
     <script src="script.js"></script>
 </body>
 </html>
