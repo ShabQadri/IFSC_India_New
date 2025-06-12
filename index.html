@@ -6,11 +6,11 @@
     <title>IFSC Code Finder</title>
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- Preload data files -->
     <link rel="preload" href="src/banknames.json" as="fetch" crossorigin>
     <link rel="preload" href="src/IFSC.json" as="fetch" crossorigin>
-    <link rel="preload" href="src/banks.json" as="fetch" crossorigin>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
@@ -19,7 +19,7 @@
         <form id="ifscForm" class="search-form">
             <div class="form-group search-box">
                 <label for="bankSearch"><i class="fas fa-search"></i> Search Bank:</label>
-                <input type="text" id="bankSearch" placeholder="Start typing bank name..." disabled>
+                <input type="text" id="bankSearch" placeholder="Loading banks..." disabled>
                 <div id="bankSearchResults" class="search-results"></div>
                 <select id="bankName" style="display: none;"></select>
             </div>
@@ -53,7 +53,7 @@
         <div id="result" style="display: none;"></div>
 
         <footer>
-            <p>Last Updated: 2025-06-12 07:18:15 UTC | Created by <a href="https://github.com/ShabQadri" target="_blank">ShabQadri <i class="fab fa-github"></i></a></p>
+            <p>Last Updated: 2025-06-12 08:56:23 UTC | Created by <a href="https://github.com/ShabQadri" target="_blank">ShabQadri <i class="fab fa-github"></i></a></p>
         </footer>
     </div>
 
