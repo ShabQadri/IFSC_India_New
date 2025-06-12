@@ -1,3 +1,6 @@
+// Version control for cache
+const CURRENT_DATA_VERSION = '1.0.0';
+
 let banksData = null;
 let banksList = null;
 let ifscData = null;
@@ -20,29 +23,99 @@ function resetSelect(elementId, disable = true) {
     select.disabled = disable;
 }
 
-// Progressive data loading
+// Check if cached data exists and is valid
+function checkCachedData() {
+    try {
+        const cachedVersion = localStorage.getItem('dataVersion');
+        if (cachedVersion !== CURRENT_DATA_VERSION) {
+            clearCache();
+            return null;
+        }
+
+        const timestamp = localStorage.getItem('dataTimestamp');
+        if (!timestamp) return null;
+
+        // Check if cache is older than 24 hours
+        const now = new Date().getTime();
+        if (now - parseInt(timestamp) > 24 * 60 * 60 * 1000) {
+            clearCache();
+            return null;
+        }
+
+        // Get cached data
+        const banksList = JSON.parse(localStorage.getItem('banksList'));
+        const banksData = JSON.parse(localStorage.getItem('banksData'));
+        const ifscData = JSON.parse(localStorage.getItem('ifscData'));
+
+        if (!banksList || !banksData || !ifscData) {
+            clearCache();
+            return null;
+        }
+
+        return { banksList, banksData, ifscData };
+    } catch (error) {
+        clearCache();
+        return null;
+    }
+}
+
+// Cache data in localStorage
+function cacheData(data) {
+    try {
+        localStorage.setItem('dataVersion', CURRENT_DATA_VERSION);
+        localStorage.setItem('banksList', JSON.stringify(data.banksList));
+        localStorage.setItem('banksData', JSON.stringify(data.banksData));
+        localStorage.setItem('ifscData', JSON.stringify(data.ifscData));
+        localStorage.setItem('dataTimestamp', new Date().getTime().toString());
+    } catch (error) {
+        console.warn('Failed to cache data:', error);
+    }
+}
+
+// Clear cache
+function clearCache() {
+    localStorage.removeItem('dataVersion');
+    localStorage.removeItem('banksList');
+    localStorage.removeItem('banksData');
+    localStorage.removeItem('ifscData');
+    localStorage.removeItem('dataTimestamp');
+}
+
+// Progressive data loading with caching
 async function fetchData() {
     try {
-        // Show loading state
         const bankSearch = document.getElementById('bankSearch');
         showLoading(bankSearch);
         
-        // First, load banknames.json and banks.json as they're needed for search
-        const [bankNamesResponse, banksResponse] = await Promise.all([
-            fetch('src/banknames.json'),
-            fetch('src/banks.json')
-        ]);
-        
+        // Check for cached data first
+        const cachedData = checkCachedData();
+        if (cachedData) {
+            ({ banksList, banksData, ifscData } = cachedData);
+            hideLoading(bankSearch);
+            initializeBankSearch();
+            return;
+        }
+
+        // If no cached data, load from files with optimized strategy
+        // First load only banknames (smallest file) to enable search
+        const bankNamesResponse = await fetch('src/banknames.json');
         banksList = await bankNamesResponse.json();
-        banksData = await banksResponse.json();
         
-        // Enable bank search immediately after loading bank names
+        // Enable search immediately after loading bank names
         hideLoading(bankSearch);
         initializeBankSearch();
         
-        // Load IFSC data
-        const ifscResponse = await fetch('src/IFSC.json');
+        // Then load other data in parallel
+        const [banksResponse, ifscResponse] = await Promise.all([
+            fetch('src/banks.json'),
+            fetch('src/IFSC.json')
+        ]);
+
+        banksData = await banksResponse.json();
         ifscData = await ifscResponse.json();
+        
+        // Cache the loaded data
+        cacheData({ banksList, banksData, ifscData });
         
     } catch (error) {
         console.error('Error loading data:', error);
