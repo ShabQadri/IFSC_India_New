@@ -27,9 +27,14 @@ async function fetchData() {
         const bankSearch = document.getElementById('bankSearch');
         showLoading(bankSearch);
         
-        // First, only load banknames.json as it's small
-        const bankNamesResponse = await fetch('src/banknames.json');
+        // First, load banknames.json and banks.json as they're needed for search
+        const [bankNamesResponse, banksResponse] = await Promise.all([
+            fetch('src/banknames.json'),
+            fetch('src/banks.json')
+        ]);
+        
         banksList = await bankNamesResponse.json();
+        banksData = await banksResponse.json();
         
         // Enable bank search immediately after loading bank names
         hideLoading(bankSearch);
@@ -237,10 +242,18 @@ document.getElementById('findIfsc').addEventListener('click', function() {
     const bankCode = document.getElementById('bankSearch').dataset.selectedBank;
     const state = document.getElementById('state').value;
     const city = document.getElementById('district').value;
-    const branch = document.getElementById('branch').value;
+    const ifscCode = document.getElementById('branch').value;
+    const branchName = document.getElementById('branch').selectedOptions[0].text;
 
-    if (!bankCode || !state || !city || !branch) {
+    if (!bankCode || !state || !city || !ifscCode) {
         alert('Please select all fields');
+        return;
+    }
+
+    // Get branch details from banks.json
+    const branchInfo = banksData[ifscCode];
+    if (!branchInfo) {
+        alert('Branch information not found');
         return;
     }
 
@@ -249,7 +262,7 @@ document.getElementById('findIfsc').addEventListener('click', function() {
         <div class="ifsc-result">
             <div class="ifsc-header">
                 <h3>IFSC Code Details</h3>
-                <button class="copy-btn" onclick="copyToClipboard('${branch}')">
+                <button class="copy-btn" onclick="copyToClipboard('${ifscCode}')">
                     <i class="far fa-copy"></i> Copy IFSC
                 </button>
             </div>
@@ -259,20 +272,36 @@ document.getElementById('findIfsc').addEventListener('click', function() {
                     <span>${banksList[bankCode]}</span>
                 </div>
                 <div class="detail-row">
+                    <label><i class="fas fa-building"></i> Branch:</label>
+                    <span>${branchName}</span>
+                </div>
+                <div class="detail-row">
                     <label><i class="fas fa-map-marker-alt"></i> State:</label>
-                    <span>${state}</span>
+                    <span>${branchInfo.state || state}</span>
                 </div>
                 <div class="detail-row">
                     <label><i class="fas fa-city"></i> City:</label>
-                    <span>${city}</span>
+                    <span>${branchInfo.city || city}</span>
                 </div>
+                ${branchInfo.district ? `
+                    <div class="detail-row">
+                        <label><i class="fas fa-map"></i> District:</label>
+                        <span>${branchInfo.district}</span>
+                    </div>
+                ` : ''}
                 <div class="detail-row">
-                    <label><i class="fas fa-building"></i> Branch:</label>
-                    <span>${document.getElementById('branch').selectedOptions[0].text}</span>
+                    <label><i class="fas fa-map-marked-alt"></i> Address:</label>
+                    <span>${branchInfo.address || 'N/A'}</span>
                 </div>
+                ${(branchInfo.contact || branchInfo.phone) ? `
+                    <div class="detail-row">
+                        <label><i class="fas fa-phone"></i> Contact:</label>
+                        <span>${branchInfo.contact || branchInfo.phone || 'N/A'}</span>
+                    </div>
+                ` : ''}
                 <div class="detail-row">
                     <label><i class="fas fa-qrcode"></i> IFSC:</label>
-                    <span>${branch}</span>
+                    <span>${ifscCode}</span>
                 </div>
             </div>
         </div>
