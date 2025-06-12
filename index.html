@@ -11,44 +11,46 @@
 </head>
 <body>
     <div class="container">
-        <h1>IFSC Code Finder</h1>
+        <h1><i class="fas fa-bank"></i> IFSC Code Finder</h1>
         
-        <form id="ifscForm">
-            <div class="form-group">
-                <label for="bankSearch">Search Bank:</label>
+        <form id="ifscForm" class="search-form">
+            <div class="form-group search-box">
+                <label for="bankSearch"><i class="fas fa-search"></i> Search Bank:</label>
                 <input type="text" id="bankSearch" placeholder="Start typing bank name..." disabled>
                 <div id="bankSearchResults" class="search-results"></div>
                 <select id="bankName" style="display: none;"></select>
             </div>
             
             <div class="form-group">
-                <label for="state">State:</label>
+                <label for="state"><i class="fas fa-map-marker-alt"></i> State:</label>
                 <select id="state" disabled>
                     <option value="">Select State</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="district">City/District:</label>
+                <label for="district"><i class="fas fa-city"></i> City/District:</label>
                 <select id="district" disabled>
                     <option value="">Select City/District</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="branch">Branch:</label>
+                <label for="branch"><i class="fas fa-building"></i> Branch:</label>
                 <select id="branch" disabled>
                     <option value="">Select Branch</option>
                 </select>
             </div>
             
-            <button type="button" id="findIfsc">Find IFSC Code</button>
+            <button type="button" id="findIfsc">
+                <i class="fas fa-search"></i> Find IFSC Code
+            </button>
         </form>
 
         <div id="result" style="display: none;"></div>
 
         <footer>
-            <p>Last Updated: 2025-06-11 | Created by <a href="https://github.com/ShabQadri" target="_blank">ShabQadri</a></p>
+            <p>Last Updated: 2025-06-12 07:18:15 UTC | Created by <a href="https://github.com/ShabQadri" target="_blank">ShabQadri <i class="fab fa-github"></i></a></p>
         </footer>
     </div>
 
