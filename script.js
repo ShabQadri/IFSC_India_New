@@ -261,9 +261,12 @@ document.getElementById('findIfsc').addEventListener('click', function() {
     resultDiv.innerHTML = `
         <div class="ifsc-result">
             <div class="ifsc-header">
-                <h3>IFSC Code Details</h3>
+                <div class="ifsc-code">
+                    <h2>IFSC Code:</h2>
+                    <h2 class="code">${ifscCode}</h2>
+                </div>
                 <button class="copy-btn" onclick="copyToClipboard('${ifscCode}')">
-                    <i class="far fa-copy"></i> Copy IFSC
+                    <i class="far fa-copy"></i> Copy Code
                 </button>
             </div>
             <div class="bank-details">
@@ -276,8 +279,8 @@ document.getElementById('findIfsc').addEventListener('click', function() {
                     <span>${branchName}</span>
                 </div>
                 <div class="detail-row">
-                    <label><i class="fas fa-map-marker-alt"></i> State:</label>
-                    <span>${branchInfo.state || state}</span>
+                    <label><i class="fas fa-map-marked-alt"></i> Address:</label>
+                    <span>${branchInfo.address || 'N/A'}</span>
                 </div>
                 <div class="detail-row">
                     <label><i class="fas fa-city"></i> City:</label>
@@ -290,8 +293,8 @@ document.getElementById('findIfsc').addEventListener('click', function() {
                     </div>
                 ` : ''}
                 <div class="detail-row">
-                    <label><i class="fas fa-map-marked-alt"></i> Address:</label>
-                    <span>${branchInfo.address || 'N/A'}</span>
+                    <label><i class="fas fa-map-marker-alt"></i> State:</label>
+                    <span>${branchInfo.state || state}</span>
                 </div>
                 ${(branchInfo.contact || branchInfo.phone) ? `
                     <div class="detail-row">
@@ -299,10 +302,6 @@ document.getElementById('findIfsc').addEventListener('click', function() {
                         <span>${branchInfo.contact || branchInfo.phone || 'N/A'}</span>
                     </div>
                 ` : ''}
-                <div class="detail-row">
-                    <label><i class="fas fa-qrcode"></i> IFSC:</label>
-                    <span>${ifscCode}</span>
-                </div>
             </div>
         </div>
     `;
